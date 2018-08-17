@@ -1,11 +1,18 @@
 # -*- coding: UTF-8 -*-
 from tkinter import *
+from tkinter import messagebox
+from time import strptime
 
-yaml_tag = ''
+widget_entrys = {}
+yaml_tag = ('date', 'title', 'categories', 'tags', '文件名')
+yamls = {}
 new_file_name = ''
 is_add_toc = True
 is_auto_add_excerpt = True
 path_to = ''
+
+for tag in yaml_tag:
+    yamls[tag] = ""
 
 
 # 检验文件是否拥有标准的yaml头标签
@@ -32,15 +39,14 @@ def show_gui():
     # 创建标签组
     yamlGroup = LabelFrame(root, text='Yaml', padx=5, pady=5)
     yamlGroup.pack(padx=10, pady=10, side=TOP, fill=BOTH, expand=YES)
-    yamls = [('date', '2018-08-17'), ('title', 'test'),
-             ('categories', 'cat'), ('tags', '标签'), ('文件名', '文件名'),
-             ]
+
     row = 0
-    for yaml, txt in yamls:
+    for yaml, txt in yamls.items():
         Label(yamlGroup, text=yaml).grid(row=row, column=1, padx=10, pady=5)
         e = Entry(yamlGroup)
         e.grid(row=row, column=2, padx=10, pady=5)
         e.insert(0, txt)
+        widget_entrys[yaml] = e
         row += 1
 
     # 创建复选框组
@@ -67,6 +73,7 @@ def show_gui():
     root.mainloop()
     pass
 
+
 # 确定生成markdown文件
 # 1. 合成或更新Yaml标签
 # 2. 插入(保留)或删除目录标记
@@ -77,6 +84,19 @@ def gui_btn_ok():
     # 按需求是否生成目录标记
     # 读取源文件，跳过源文件的Yaml头，目录标记，如果有
     # 一直读取剩下的内容写入到新文件中，除非遇到摘要标记(为忽略的话)
+    # 截取前300个字符为摘要。
+    for tag in yaml_tag:
+        txt = widget_entrys[tag].get()
+        yamls[tag] = txt
+
+    date = yamls.setdefault('date', '')
+    try:
+        strptime(date, '%Y-%m-%d')
+    except:
+        messagebox.showerror('错误', 'date 格式不符合 yyyy-MM-dd')
+        return
+
+
     pass
 
 

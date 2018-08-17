@@ -1,8 +1,21 @@
 from tkinter import *
 
-root = Tk()
-e=Entry(root, name='ee')
+yamls = {}
+yamls['date']=1
+date = yamls.setdefault('date', '')
 
-e.pack()
-Button(root,text='111', command=lambda : print(e.config)).pack()
-root.mainloop()
+if not date:
+    print("not date ", date)
+else:
+    print("has date ", date)
+
+yaml_tag = ('date', 'title', 'categories', 'tags', '文件名')
+
+index = 1
+for tag in yaml_tag:
+    yamls[tag] = ""
+
+print("dict is ", yamls)
+
+for a, b in yamls.items():
+    print(a, " + ", b)

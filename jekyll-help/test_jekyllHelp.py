@@ -10,8 +10,8 @@ class MyTestCase(unittest.TestCase):
         file = "D:\\project\\skyc00p.github.io\\_posts\\2018-07-06-初识Git.md"
         self.assertTrue(check_has_yaml(file))
 
-        #file = "D:\\project\\Script\\jekyll-help\\test_jekyllHelp.py"
-        #self.assertFalse(check_has_yaml(file))
+        # file = "D:\\project\\Script\\jekyll-help\\test_jekyllHelp.py"
+        # self.assertFalse(check_has_yaml(file))
 
         pass
 
@@ -24,10 +24,8 @@ class MyTestCase(unittest.TestCase):
         pass
 
     def test_1(self):
-        Text
-        b1 = False
-        b1 = not b1
-        print(b1)
+        get_sys_args()
+
 
 if __name__ == '__main__':
     unittest.main()

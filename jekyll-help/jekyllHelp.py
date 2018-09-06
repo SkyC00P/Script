@@ -1,28 +1,22 @@
 # -*- coding: UTF-8 -*-
 from tkinter import *
 from tkinter import messagebox
+from tkinter import filedialog
 from time import strptime
+import datetime
+from sys import argv
+import os,shutil
+import chardet
 
 widget_entrys = {}
-yaml_tag = ('date', 'title', 'categories', 'tags', '文件名')
+yaml_tag = ('date', 'title', 'categories', 'tags', 'filename')
 yamls = {}
-new_file_name = ''
 is_add_toc = True
 is_auto_add_excerpt = True
-path_to = ''
-
-for tag in yaml_tag:
-    yamls[tag] = ""
-
-
-# 检验文件是否拥有标准的yaml头标签
-def check_has_yaml(path) -> bool:
-    return false
-
-
-# 创建yaml头标签
-def create_yaml_tag():
-    pass
+has_toc = False
+has_add_excerpt = False
+has_yamls = False  # 文件是否存在yaml头信息
+path_to = 'D:\\project\\skyc00p.github.io\\_posts'
 
 
 # 显示操作GUI
@@ -64,7 +58,7 @@ def show_gui():
     btnGroup.pack(padx=10, pady=10, side=BOTTOM)
 
     btns = [
-        ('确定', gui_btn_ok()), ('预览', gui_btn_preview()), ('取消', lambda: root.quit()),
+        ('确定', gui_btn_ok), ('预览', gui_btn_preview), ('取消', lambda: root.quit()),
     ]
 
     for w_btn, fuc in btns:
@@ -96,7 +90,44 @@ def gui_btn_ok():
         messagebox.showerror('错误', 'date 格式不符合 yyyy-MM-dd')
         return
 
+    # 写入yaml到新文件
+    newfile = path_to + "\\" + yamls['date'] + '-'+yamls['filename'] + '.md'
+    shutil.copyfile(file, newfile)
 
+    fd_buf = open(newfile,'rb+')
+    fd_buf.seek(0,0)
+
+    if not has_yamls:
+        fd_buf.write(b'---\n')
+        fd_buf.write('layout:post\n'.encode('utf-8'))
+        fd_buf.write(b'author:skycoop\n')
+        yamls.pop('filename')
+        for k,v in yamls.items():
+            txt = k + ':' + v + '\n'
+            fd_buf.write(bytes(txt,'utf-8'))
+        fd_buf.write(b'---\n')
+        fd_buf.write(b'\n')
+        fd_buf.flush()
+    else:
+        # todo 如果源文件已经存在头文件，更新他
+        pass
+
+    if not has_toc and is_add_toc:
+        fd_buf.write(b'* content\n{:toc}\n\n')
+        fd_buf.flush()
+
+    if not has_add_excerpt and is_auto_add_excerpt:
+        fd_buf.read(600)
+        fd_buf.readline()
+        fd_buf.write(b'\n')
+        fd_buf.write(b'<!--more-->\n')
+        fd_buf.write(b'\n')
+
+    fd_buf.close()
+    if messagebox.askyesno('Jekyll-Help', '是否打开生成目录查看文件'):
+        os.startfile(path_to)
+
+    exit()
     pass
 
 
@@ -118,45 +149,110 @@ def test():
     pass
 
 
+# 获取系统传来的参数
 def get_sys_args():
-    pass
+    if len(argv) == 2 and argv[1]:
+        return argv[1]
+    else:
+        return ''
 
 
-def check_args(args):
-    pass
+# 判断是否为空，参数是否为文件路径，文件是否存在，后缀名是否为md
+def check_args(file):
+    if not file:
+        return False
+
+    return os.path.isfile(file) and os.path.splitext(file)[1] == '.md' \
+           and os.access(file, os.R_OK) and os.access(file, os.W_OK)
 
 
 def ask_user():
-    pass
+    root = Tk()
+    root.withdraw()
+    messagebox.showerror('错误', '必须选择一个markdown文件')
+    file = filedialog.askopenfilename(title='选择一个markdown文件')
+    root.destroy()
+    return file
 
 
-def config_not_set():
-    pass
+# 1. 获得文件的名字
+# 2. 初始化yamls的值
+# 3. 搜索是否存在目录标签和摘要标签
+def read_file(file):
+    global yamls
+    filename = os.path.splitext(os.path.basename(file))[0]
 
 
-def init_config():
-    pass
+    fd_file = open(file, 'rb')
+    line = fd_file.readline()
+    count = 1
+    if line.startswith(b'---'):
+        line = fd_file.readline()
+        count += 1
+        while count != 200 and not line.startswith(b'---'):
+            encoding = chardet.detect(line)['encoding']
+            yaml = line.decode(encoding).strip().split(':', 1)
+            if yaml[0] in yaml_tag:
+                yamls[yaml[0]] = yaml[1]
+            line = fd_file.readline()
+            count += 1
+
+        if line.startswith(b'---'):
+            global has_yamls
+            has_yamls = True
+        else: # 没找到Yaml的结束符，关闭重新打开文件，类似定位到文件头
+            fd_file.close()
+            fd_file = open(file, 'rb')
 
 
-def read_file():
-    pass
+    # 在剩余的200行内寻找目录标签和摘要标签
+    isFind = 0
+    count = 0
+    while line:
+        if line.strip() == b'* content':
+            nextLine = fd_file.readline()
+            count += 1
+            if nextLine.strip() == b'{:toc}':
+                global has_toc
+                has_toc = True
+                isFind += 1
+        elif line.strip() == b'<!--more-->':
+            global has_add_excerpt
+            has_add_excerpt = True
+            isFind += 1
+
+        count += 1
+        if count == 200 or isFind == 2:
+            break
+        line = fd_file.readline()
+
+    fd_file.close()
+    yamls.setdefault('date', datetime.datetime.now().strftime('%Y-%m-%d'))
+    yamls.setdefault('title', filename)
+    yamls.setdefault('categories', '技术总结')
+    yamls.setdefault('tags', '日常总结')
+    yamls.setdefault('filename',filename)
 
 
 if __name__ == '__main__':
     # 获取命令行传来的参数
-    args = get_sys_args()
+    file = get_sys_args()
 
     # 检验命令行参数是否合乎规范，是否传来一个 md 文件的路径，文件是否存在
     # 否则与用户进行交互，让用户提供一个路径
-    if not check_args(args):
-        ask_user()
+    while not check_args(file):
+        file = ask_user()
 
-    # 初次需要配置些参数
-    if config_not_set():
-        init_config()
+        if not file:
+            exit()
 
-    # 读取md文件
-    read_file()
+    if not os.path.isdir(path_to):
+        root = Tk()
+        root.withdraw()
+        messagebox.showerror('错误', '生成目录不存在')
+        exit()
+
+    read_file(file)
 
     # 显示操作窗口
     show_gui()

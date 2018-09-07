@@ -1,4 +1,4 @@
-file='D:\\project\\skyc00p.github.io\\_drafts\\命令的帮助文档怎么看.md'
+file=r'D:\document\MD文档\python\初识Python.md'
 newfile='d:\\1.md'
 
 with open(file, 'rb') as f:
@@ -20,8 +20,9 @@ elif lines.count(b'\n') != 0 :
     lines.insert(lines.index(b'\n', index + 1) + 1, b'<!--more-->\n')
 
 for line in lines:
-    strw = str(line,encoding='utf-8')
+    strw = str(line.strip(),encoding='utf-8')
     fd_buf.write(strw)
+    fd_buf.write('\n')
 
 fd_buf.flush()
 fd_buf.close()

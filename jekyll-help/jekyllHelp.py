@@ -99,11 +99,11 @@ def gui_btn_ok():
 
     if not has_yamls:
         fd_buf.write('---\n')
-        fd_buf.write('layout:post\n')
-        fd_buf.write('author:skycoop\n')
+        fd_buf.write('layout: post\n')
+        fd_buf.write('author: skycoop\n')
         yamls.pop('filename')
         for k, v in yamls.items():
-            txt = k + ':' + v + '\n'
+            txt = k + ': ' + v + '\n'
             fd_buf.write(txt)
         fd_buf.write('---\n')
         fd_buf.flush()
@@ -126,7 +126,8 @@ def gui_btn_ok():
             lines.insert(12, b'<!--more-->\n')
 
     for line in lines:
-        fd_buf.write(str(line, encoding='utf-8'))
+        fd_buf.write(str(line.strip(), encoding='utf-8'))
+        fd_buf.write('\n')
 
     fd_buf.close()
     if messagebox.askyesno('Jekyll-Help', '是否打开生成目录查看文件'):
@@ -233,7 +234,7 @@ def read_file(file):
     yamls.setdefault('date', datetime.datetime.now().strftime('%Y-%m-%d'))
     yamls.setdefault('title', filename)
     yamls.setdefault('categories', '技术总结')
-    yamls.setdefault('tags', '日常总结')
+    yamls.setdefault('tags', '')
     yamls.setdefault('filename', filename)
 
 

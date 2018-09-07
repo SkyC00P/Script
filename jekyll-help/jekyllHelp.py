@@ -5,7 +5,7 @@ from tkinter import filedialog
 from time import strptime
 import datetime
 from sys import argv
-import os,shutil
+import os, shutil
 import chardet
 
 widget_entrys = {}
@@ -91,37 +91,42 @@ def gui_btn_ok():
         return
 
     # 写入yaml到新文件
-    newfile = path_to + "\\" + yamls['date'] + '-'+yamls['filename'] + '.md'
-    shutil.copyfile(file, newfile)
+    newfile = path_to + "\\" + yamls['date'] + '-' + yamls['filename'] + '.md'
+    with open(file, 'rb') as f:
+        lines = f.readlines()
 
-    fd_buf = open(newfile,'rb+')
-    fd_buf.seek(0,0)
+    fd_buf = open(newfile, 'w', encoding='utf-8')
 
     if not has_yamls:
-        fd_buf.write(b'---\n')
-        fd_buf.write('layout:post\n'.encode('utf-8'))
-        fd_buf.write(b'author:skycoop\n')
+        fd_buf.write('---\n')
+        fd_buf.write('layout:post\n')
+        fd_buf.write('author:skycoop\n')
         yamls.pop('filename')
-        for k,v in yamls.items():
+        for k, v in yamls.items():
             txt = k + ':' + v + '\n'
-            fd_buf.write(bytes(txt,'utf-8'))
-        fd_buf.write(b'---\n')
-        fd_buf.write(b'\n')
+            fd_buf.write(txt)
+        fd_buf.write('---\n')
         fd_buf.flush()
     else:
         # todo 如果源文件已经存在头文件，更新他
         pass
 
     if not has_toc and is_add_toc:
-        fd_buf.write(b'* content\n{:toc}\n\n')
+        fd_buf.write('\n* content\n{:toc}\n\n')
         fd_buf.flush()
 
     if not has_add_excerpt and is_auto_add_excerpt:
-        fd_buf.read(600)
-        fd_buf.readline()
-        fd_buf.write(b'\n')
-        fd_buf.write(b'<!--more-->\n')
-        fd_buf.write(b'\n')
+        if lines.count(b'\r\n') != 0:
+            index = lines.index(b'\r\n')
+            lines.insert(lines.index(b'\r\n', index + 1) + 1, b'<!--more-->\n')
+        elif lines.count(b'\n') != 0:
+            index = lines.index(b'\n')
+            lines.insert(lines.index(b'\n', index + 1) + 1, b'<!--more-->\n')
+        else:
+            lines.insert(12, b'<!--more-->\n')
+
+    for line in lines:
+        fd_buf.write(str(line, encoding='utf-8'))
 
     fd_buf.close()
     if messagebox.askyesno('Jekyll-Help', '是否打开生成目录查看文件'):
@@ -182,7 +187,6 @@ def read_file(file):
     global yamls
     filename = os.path.splitext(os.path.basename(file))[0]
 
-
     fd_file = open(file, 'rb')
     line = fd_file.readline()
     count = 1
@@ -200,10 +204,9 @@ def read_file(file):
         if line.startswith(b'---'):
             global has_yamls
             has_yamls = True
-        else: # 没找到Yaml的结束符，关闭重新打开文件，类似定位到文件头
+        else:  # 没找到Yaml的结束符，关闭重新打开文件，类似定位到文件头
             fd_file.close()
             fd_file = open(file, 'rb')
-
 
     # 在剩余的200行内寻找目录标签和摘要标签
     isFind = 0
@@ -231,7 +234,7 @@ def read_file(file):
     yamls.setdefault('title', filename)
     yamls.setdefault('categories', '技术总结')
     yamls.setdefault('tags', '日常总结')
-    yamls.setdefault('filename',filename)
+    yamls.setdefault('filename', filename)
 
 
 if __name__ == '__main__':

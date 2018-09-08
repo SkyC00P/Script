@@ -5,7 +5,7 @@ from tkinter import filedialog
 from time import strptime
 import datetime
 from sys import argv
-import os, shutil
+import os
 import chardet
 
 widget_entrys = {}

@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 @chcp 65001 >nul
 echo run %CMDCMDLINE%
 rem --------------------------------------------------------
@@ -17,9 +17,9 @@ set "_FILE_NAME=%~n1"
 :: -> 源文件的绝对路径
 set "_SOURCE_FILE=%1"
 :: -> 生成的文件的目录
-set "_DEST_PATH=D:\idea_src_工程\skyc00p.github.io\_posts\"
+set "_DEST_PATH=D:\project\skyc00p.github.io\_posts\"
 :: -> 与源文件对应的头标签目录
-set "_YAML_PATH=D:\idea_src_工程\skyc00p.github.io\_drafts\yaml\"
+set "_YAML_PATH=D:\project\skyc00p.github.io\_drafts\yaml\"
 :: -> Yaml 头标签绝对路径
 set "_YAML_FILE=%_YAML_PATH%%_FILE_NAME%.yaml"
 :: -> 操作指令: M 修改，A 添加

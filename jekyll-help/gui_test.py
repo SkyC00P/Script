@@ -39,7 +39,7 @@ class Application():
         return c
 
     def __create_btn(self, frame, txt):
-        btn = Button(frame, text=txt, width=8)
+        btn = Button(frame, text=txt, width=8, command=lambda: self.showerror('1', '2'))
         btn.pack(side=LEFT, padx=2)
         return btn
 
@@ -110,7 +110,6 @@ class MyTestCase(unittest.TestCase):
 
     def test(self):
         app = Application()
-        app.btn_ok.bind("<Button-1>",lambda event:app.showerror('1','2'))
         app.show()
 
 
